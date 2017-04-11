@@ -34,7 +34,6 @@ struct slot{
 	int row;
 	int column;
 	enum terrain type;
-	//enum value log;
 	struct slot *left;
 	struct slot *right;
 	struct slot *up;
@@ -52,6 +51,7 @@ void terrain_mod(struct player p[],int currPlayer);
 void stats(struct player p[], int n);
 struct slot * reachDesiredElement(int row, int column, struct slot * initialSlot);
 void findSlots(int reqDist, int currDist,  struct slot * currSlot, struct slot * foundSlots, int * count,  bool explored[BOARD_SIZE][BOARD_SIZE]);
+void searchAttk(struct player p[],int currPlayer, struct slot *upLeft, struct slot *upRight, struct slot *downLeft, struct slot *downRight, int n, int reqDist);
 
 int main(void)
 {
@@ -82,42 +82,10 @@ int main(void)
 		 movement(players, i);
 		}
 		else if(players[i].action == 2){
-			
-			struct slot *currSlot = NULL;
-			struct slot *foundSlots;
-			bool explored[BOARD_SIZE][BOARD_SIZE];
-			int count =0; 
-			
-			
-				for(int i=0; i<BOARD_SIZE; i++){
-					for(int j=0; j<BOARD_SIZE;j++){
-						explored[i][j] = false;
-					}
-				}
-			
-			
-			currSlot = players[i].place;
-			foundSlots = malloc(BOARD_SIZE*BOARD_SIZE* sizeof(struct slot ));
-			printf("\n\nFunction findSlotsinvoked:\n");
-
-			if(currSlot!= NULL){
-				//invokes function findSlots. The required distance is a constant
-				//However you can reuse this function providing as input any arbitrary distance
-				findSlots(1, 0, currSlot, foundSlots, &count, explored);
-				//findSlots(2, 0, currSlot, foundSlots, &count, explored);
-				//findSlots(4, 0, currSlot, foundSlots, &count, explored);
-		
-				for(int i=0; i<count; i++){
-					
-						printf("(%d, %d)-> ",foundSlots[i].row, foundSlots[i].column);
-					
-				}
-			
-			}
-				
-		}
+			searchAttk(players,i, upLeft, upRight, downLeft, downRight, num, 2);
+		}	
 		else if(players[i].action == 3){
-			
+		
 		}
 	}
 	
@@ -670,12 +638,12 @@ void findSlots(int reqDist, int currDist,  struct slot * currSlot, struct slot *
 	//The recursive call: the current slot is at a distance that is less than the required distance (more slots still have to be traversed)
 	else{
 		//if the current slot has the up slot != NULL (i.e. the slot is not in the first row)
-		if(currSlot->up!= NULL){
+		if(currSlot->up != NULL){
 			//invokes function find slots incrementing the current Distance (currDist) and setting the current slot to the up slot
 			findSlots(reqDist, currDist +1,  currSlot->up, foundSlots, count, explored);
 		}
 		//if the current slot has the right slot != NULL (i.e. the slot is not in the last column)
-		if(currSlot->right!= NULL){
+		if(currSlot->right != NULL){
 			//invokes function find slots incrementing the current Distance (currDist) and setting the current slot to the right slot
 			findSlots(reqDist, currDist +1,  currSlot->right, foundSlots, count, explored);
 		}
@@ -685,10 +653,66 @@ void findSlots(int reqDist, int currDist,  struct slot * currSlot, struct slot *
 			findSlots(reqDist, currDist +1,  currSlot->down, foundSlots, count, explored);
 		}
 		//if the current slot has the left slot != NULL (i.e. the slot is not in the first column)
-		if(currSlot->left!= NULL){
+		if(currSlot->left != NULL){
 			//invokes function find slots incrementing the current Distance (currDist) and setting the current slot to the left slot
 			findSlots(reqDist, currDist +1,  currSlot->left, foundSlots, count, explored);
 		}
 
 	}
+}
+
+void searchAttk(struct player p[],int currPlayer, struct slot *upLeft, struct slot *upRight, struct slot *downLeft, struct slot *downRight, int n, int reqDist)
+{
+		struct slot *currSlot = NULL;
+		struct slot *foundSlots;
+		bool explored[BOARD_SIZE][BOARD_SIZE];
+		int count =0; 
+		
+		
+		for(int i=0; i<BOARD_SIZE; i++){
+			for(int j=0; j<BOARD_SIZE;j++){
+				explored[i][j] = false;
+			}
+		}
+	
+			/*If the the required slot is closer to the down-right
+			* corner of the board the search starts from downRight,
+			* which points to slot at position (boardSize-1, boarSize -1)*/
+			if(p[currPlayer].place->row >= BOARD_SIZE/2){
+				if(p[currPlayer].place->column >= BOARD_SIZE/2)
+				currSlot = reachDesiredElement(p[currPlayer].place->row,p[currPlayer].place->column,downRight);
+				else
+				/*If the the required slot is closer to the down-left
+				* corner of the board the search starts from downLeft,
+				* which points to slot at position (boardSize-1, 0)*/
+				currSlot = reachDesiredElement(p[currPlayer].place->row,p[currPlayer].place->column,downLeft);
+			} else {
+			/*If the the required slot is closer to the up-right
+			* corner of the board the search starts from upRight,
+			* which points to slot at position (0, boarSize -1)*/
+				if(p[currPlayer].place->column >= BOARD_SIZE/2)
+					currSlot = reachDesiredElement(p[currPlayer].place->row,p[currPlayer].place->column,upRight);
+					/*If the the required slot is closer to the up-left
+					* corner of the board the search starts from upLeft,
+					* which points to slot at position (0, 0)*/
+				else currSlot = reachDesiredElement(p[currPlayer].place->row,p[currPlayer].place->column,upLeft);
+			}
+			
+			
+			foundSlots = malloc(BOARD_SIZE*BOARD_SIZE* sizeof(struct slot ));
+			printf("\n\nFunction findSlotsinvoked:\n");
+
+			if(currSlot!= NULL){
+				//invokes function findSlots. The required distance is a constant
+				//However you can reuse this function providing as input any arbitrary distance
+				findSlots(reqDist, 0, currSlot, foundSlots, &count, explored);
+				
+				for(int j = 0; j < n; j++){
+					for(int k=0; k<count; k++){
+						if(p[j].place->row == foundSlots[k].row && p[j].place->column == foundSlots[k].column && p[j].name != p[currPlayer].name){
+						printf("(%d, %d)-> ",foundSlots[k].row, foundSlots[k].column);
+						}
+					}	
+				}
+			}
 }
