@@ -6,7 +6,12 @@
 #define BOARD_SIZE 7
 #define AREA 4
 
-enum value{ false, true };
+/*
+ * Definition of boolean types
+ * This avoids using <stdbool.h>
+ */
+typedef int bool;
+enum { false, true };
 
 enum class{Elf, Human, Ogre, Wizard};
 enum terrain{Level_Ground, Hill, City}; //Terrain to choose from
@@ -24,7 +29,7 @@ struct slot{
 	int row;
 	int column;
 	enum terrain type;
-	enum value log;
+	//enum value log;
 	struct slot *left;
 	struct slot *right;
 	struct slot *up;
@@ -36,7 +41,8 @@ void name(struct player players[], int n);
 void class_choice(struct player p[], int n);
 void capabilities(struct player p[], int n);
 void createBoard(struct player p[], struct slot **board,struct slot **upLeft, struct slot **upRight, struct slot **downLeft, struct slot **downRight, int n);
-void action(struct player p[], struct slot **board, int n);
+void action(struct player p[], int currPlayer);
+void movement(struct player p[], int currPlayer);
 void terrain_mod(struct player p[],int currPlayer);
 void stats(struct player p[], int n);
 
@@ -55,14 +61,39 @@ int main(void)
 	struct slot *upRight;
 	struct slot *downLeft;
 	struct slot *downRight;
+	
+	struct slot* currSlot = NULL;
+	struct slot *foundSlots;
+	bool explored[BOARD_SIZE][BOARD_SIZE];
+	int count =0;
+	
+	for(int i=0; i<BOARD_SIZE; i++){
+		for(int j=0; j<BOARD_SIZE;j++){
+			explored[i][j] = false;
+		}
+	}
+	
 	//The board is represented as a pointer of pointer to slots
 	//This allocates in memory the space for the pointers to each row of the board
 	struct slot ** board = malloc(BOARD_SIZE * sizeof(struct slot *));
 
 	createBoard(players,board,&upLeft, &upRight, &downLeft, &downRight, num);
 	stats(players, num);
+	for(int i = 0; i < num; i++)
+	{
+		action(players,i);
+		if(players[i].action == 1){
+		 movement(players, i);
+		}
+		else if(player[i].action == 2){
+			
+		}
+		else if(player[i].action == 3){
+			
+		}
+	}
 	
-	action(players,board, num);
+	
 	stats(players, num);
 	}
 
@@ -310,22 +341,25 @@ void createBoard(struct player p[],struct slot **board,struct slot **upLeft, str
 	
 }
 
-void action(struct player p[],struct slot **board, int n){
+void action(struct player p[], int currPlayer){
 	//A loop that asks each user what course of action they will take
-	for(size_t i = 0; i < n; i ++){
-		printf("\n%s choose an action:\n", p[i].name);
+		printf("\n%s choose an action:\n", p[currPlayer].name);
 		printf("(1)Move to an adacent slot - 1 step\n(2)Attack\n(3)Quit the game\n");
-		scanf("%d", &p[i].action);
+		scanf("%d", &p[currPlayer].action);
 	
 			//Error checking
-			while(p[i].action < 1 || p[i].action > 3)
+			while(p[currPlayer].action < 1 || p[currPlayer].action > 3)
 			{
 				printf("Invalid input, please try again!\n");
-				printf("\n%s choose an action:\n", p[i].name);
+				printf("\n%s choose an action:\n", p[currPlayer].name);
 				printf("(1)Move to an adacent slot - 1 step\n(2)Attack\n(3)Quit the game\n");
-				scanf("%d", &p[i].action);
+				scanf("%d", &p[currPlayer].action);
 			}
-			
+	
+}	
+
+
+void movement(struct player p[], int currPlayer){
 		int move[AREA];	
 		int point = -1;
 		for(size_t i = 0; i < AREA; i++)
@@ -333,100 +367,95 @@ void action(struct player p[],struct slot **board, int n){
 			move[i] = 1; //[0] = UP, [1] = DOWN, [2] = LEFT, [3] = RIGHT
 		}		
 		
-			
-		switch(p[i].action){
-			case(1):
-				printf("[%d,%d] Location of %s", p[i].place->row, p[i].place->column, p[i].name);
+		printf("[%d,%d] Location of %s", p[currPlayer].place->row, p[currPlayer].place->column, p[currPlayer].name);
 				
-				if(p[i].place->row == 0 && (p[i].place->column != 0 && p[i].place->column !=6))
+				if(p[currPlayer].place->row == 0 && (p[currPlayer].place->column != 0 && p[currPlayer].place->column !=6))
 				{
-					printf("\n%s can move:\n", p[i].name);
-					printf("DOWN[%d,%d]\nLEFT[%d,%d]\nRIGHT[%d,%d]\n", p[i].place->down->row,p[i].place->down->column,p[i].place->left->row,p[i].place->left->column,p[i].place->right->row,p[i].place->right->column);
+					printf("\n%s can move:\n", p[currPlayer].name);
+					printf("DOWN[%d,%d]\nLEFT[%d,%d]\nRIGHT[%d,%d]\n", p[currPlayer].place->down->row,p[currPlayer].place->down->column,p[currPlayer].place->left->row,p[currPlayer].place->left->column,p[currPlayer].place->right->row,p[currPlayer].place->right->column);
 					move[0] = 0;
 				}
-				else if(p[i].place->row == 6 && (p[i].place->column != 0 && p[i].place->column !=6))
+				else if(p[currPlayer].place->row == 6 && (p[currPlayer].place->column != 0 && p[currPlayer].place->column !=6))
 				{
-					printf("\n%s can move:\n", p[i].name);
-					printf("UP[%d,%d]\nLEFT[%d,%d]\nRIGHT[%d,%d]\n", p[i].place->up->row, p[i].place->up->column,p[i].place->left->row,p[i].place->left->column,p[i].place->right->row,p[i].place->right->column);
+					printf("\n%s can move:\n", p[currPlayer].name);
+					printf("UP[%d,%d]\nLEFT[%d,%d]\nRIGHT[%d,%d]\n", p[currPlayer].place->up->row, p[currPlayer].place->up->column,p[currPlayer].place->left->row,p[currPlayer].place->left->column,p[currPlayer].place->right->row,p[currPlayer].place->right->column);
 					move[1] = 0;
 				}
-				else if(p[i].place->column == 0 && (p[i].place->row != 0 && p[i].place->row !=6))
+				else if(p[currPlayer].place->column == 0 && (p[currPlayer].place->row != 0 && p[currPlayer].place->row !=6))
 				{
-					printf("\n%s can move:\n", p[i].name);
-					printf("UP[%d,%d]\nDOWN[%d,%d]\nRIGHT[%d,%d]\n", p[i].place->up->row, p[i].place->up->column,p[i].place->down->row,p[i].place->down->column,p[i].place->right->row,p[i].place->right->column);
+					printf("\n%s can move:\n", p[currPlayer].name);
+					printf("UP[%d,%d]\nDOWN[%d,%d]\nRIGHT[%d,%d]\n", p[currPlayer].place->up->row, p[currPlayer].place->up->column,p[currPlayer].place->down->row,p[currPlayer].place->down->column,p[currPlayer].place->right->row,p[currPlayer].place->right->column);
 					move[2] = 0;
 				}
-				else if(p[i].place->column == 6 && (p[i].place->row != 0 && p[i].place->row !=6))
+				else if(p[currPlayer].place->column == 6 && (p[currPlayer].place->row != 0 && p[currPlayer].place->row !=6))
 				{
-					printf("\n%s can move:\n", p[i].name);
-					printf("UP[%d,%d]\nDOWN[%d,%d]\nLEFT[%d,%d]\n", p[i].place->up->row, p[i].place->up->column,p[i].place->down->row,p[i].place->down->column,p[i].place->left->row,p[i].place->left->column);
+					printf("\n%s can move:\n", p[currPlayer].name);
+					printf("UP[%d,%d]\nDOWN[%d,%d]\nLEFT[%d,%d]\n", p[currPlayer].place->up->row, p[currPlayer].place->up->column,p[currPlayer].place->down->row,p[currPlayer].place->down->column,p[currPlayer].place->left->row,p[currPlayer].place->left->column);
 					move[3] = 0;
 				}
-				else if(p[i].place->row == 0 && p[i].place->column == 0)
+				else if(p[currPlayer].place->row == 0 && p[currPlayer].place->column == 0)
 				{
-					printf("\n%s can move:\n", p[i].name);
-					printf("DOWN[%d,%d]\nRIGHT[%d,%d]\n",p[i].place->down->row,p[i].place->down->column,p[i].place->right->row,p[i].place->right->column);
+					printf("\n%s can move:\n", p[currPlayer].name);
+					printf("DOWN[%d,%d]\nRIGHT[%d,%d]\n",p[currPlayer].place->down->row,p[currPlayer].place->down->column,p[currPlayer].place->right->row,p[currPlayer].place->right->column);
 					move[0] = 0;
 					move[2] = 0;
 				}
-				else if(p[i].place->row == 0 && p[i].place->column == 6)
+				else if(p[currPlayer].place->row == 0 && p[currPlayer].place->column == 6)
 				{
-					printf("\n%s can move:\n", p[i].name);
-					printf("DOWN[%d,%d]\nLEFT[%d,%d]\n", p[i].place->down->row,p[i].place->down->column,p[i].place->left->row,p[i].place->left->column);
+					printf("\n%s can move:\n", p[currPlayer].name);
+					printf("DOWN[%d,%d]\nLEFT[%d,%d]\n", p[currPlayer].place->down->row,p[currPlayer].place->down->column,p[currPlayer].place->left->row,p[currPlayer].place->left->column);
 					move[0] = 0;
 					move[3] = 0;
 				}
-				else if(p[i].place->row == 6 && p[i].place->column == 0)
+				else if(p[currPlayer].place->row == 6 && p[currPlayer].place->column == 0)
 				{
-					printf("\n%s can move:\n", p[i].name);
-					printf("UP[%d,%d]\nRIGHT[%d,%d]\n", p[i].place->up->row, p[i].place->up->column,p[i].place->right->row,p[i].place->right->column);
+					printf("\n%s can move:\n", p[currPlayer].name);
+					printf("UP[%d,%d]\nRIGHT[%d,%d]\n", p[currPlayer].place->up->row, p[currPlayer].place->up->column,p[currPlayer].place->right->row,p[currPlayer].place->right->column);
 					move[1] = 0;
 					move[2] = 0;
 				}
-				else if(p[i].place->row == 6 && p[i].place->column == 6)
+				else if(p[currPlayer].place->row == 6 && p[currPlayer].place->column == 6)
 				{
-					printf("\n%s can move:\n", p[i].name);
-					printf("UP[%d,%d]\nLEFT[%d,%d]\n", p[i].place->up->row, p[i].place->up->column,p[i].place->left->row,p[i].place->left->column);
+					printf("\n%s can move:\n", p[currPlayer].name);
+					printf("UP[%d,%d]\nLEFT[%d,%d]\n", p[currPlayer].place->up->row, p[currPlayer].place->up->column,p[currPlayer].place->left->row,p[currPlayer].place->left->column);
 					move[1] = 0;
 					move[3] = 0;
 				}
 				else 
 				{
-					printf("\n%s can move:\n", p[i].name);
-					printf("UP[%d,%d]\nDOWN[%d,%d]\nLEFT[%d,%d]\nRIGHT[%d,%d]\n", p[i].place->up->row, p[i].place->up->column,p[i].place->down->row,p[i].place->down->column,p[i].place->left->row,p[i].place->left->column,p[i].place->right->row,p[i].place->right->column);
+					printf("\n%s can move:\n", p[currPlayer].name);
+					printf("UP[%d,%d]\nDOWN[%d,%d]\nLEFT[%d,%d]\nRIGHT[%d,%d]\n", p[currPlayer].place->up->row, p[currPlayer].place->up->column,p[currPlayer].place->down->row,p[currPlayer].place->down->column,p[currPlayer].place->left->row,p[currPlayer].place->left->column,p[currPlayer].place->right->row,p[currPlayer].place->right->column);
 				}
-				
-				
-				do{
+		
+			do{
+				printf("\n\nEnter your choice of movement:\n");
+				printf("(0)Up (1)Down (2)Left (3)Right\n");
+				scanf("%d", &point);
 					
-					printf("Enter your choice of movement:\n");
-					printf("0.Up 1.Down 2.Left 3.Right\n");
-					scanf("%d", &point);
+				if(move[point] == 0 || point < 0 || point > 3){
+					printf("Invalid action, retry");
+				}
 					
-					if(move[point] == 0){
-						printf("Invalid action, retry\n");
-					}
-					
-				}while(move[point] != 1);
+			}while(move[point] != 1);
 				
 				if(point == 0){
-					p[i].place = p[i].place->up;
+					p[currPlayer].place = p[currPlayer].place->up;
 				}
 				else if(point == 1){
-					p[i].place = p[i].place->down;
+					p[currPlayer].place = p[currPlayer].place->down;
 				}
 				else if(point == 2){
-					p[i].place = p[i].place ->left;
+					p[currPlayer].place = p[currPlayer].place ->left;
 				}
 				else if(point = 3){
-					p[i].place = p[i].place -> right;
+					p[currPlayer].place = p[currPlayer].place -> right;
 				}
-				terrain_mod(p,i);
-				printf("[%d,%d] New place", p[i].place->row, p[i].place->column);
-			break;
-		}
-	}
+				terrain_mod(p,currPlayer);
+				printf("[%d,%d] New place", p[currPlayer].place->row, p[currPlayer].place->column);
+		
+			
 }
+
 
 /*A function that depending on the players location it will increase or decrease their stats
  *Input:
@@ -508,4 +537,57 @@ void stats(struct player p[], int n){
 			break;
 		}
 	}	
+}
+
+/*
+ * The recursive function that traverses the board to find the slots at a predefined
+ * distance from the current slot and place them in foundSlots.
+ * Parameters:
+ * 	reqDist: the required distance from the starting slot
+ * 	currDist: the distance of the current slot from the starting slot
+ * 	currSlot: a pointer to the current slot that is traversed
+ * 	foundSlots: the array of slots that are at a required distance from the starting slot
+ * 	count: pointer to an integer representing the number of slots that are found to be at a required distance from the starting slot
+ * 	explored: matrix indicating for each slot at row x and column y has been traversed (true) or not (false)
+ */
+void findSlots(int reqDist, int currDist,  struct slot * currSlot, struct slot * foundSlots, int * count,  bool explored[BOARD_SIZE][BOARD_SIZE]){
+
+
+
+	//The base case: the current slot is at the required distance from the starting slot
+	if(currDist == reqDist){
+		//the current slot was not explored
+		if(explored[currSlot->row][currSlot->column] == false){
+			//The next availbale position (indicated by count) at foundSlots points to the current slot
+			*(foundSlots + *count) = *currSlot;
+			//the counter is incremented
+			(*count)++;
+			//the matrix of the explored slots set to true the element at the row and column of the current slot
+			explored[currSlot->row][currSlot->column] = true;
+		}
+	}
+	//The recursive call: the current slot is at a distance that is less than the required distance (more slots still have to be traversed)
+	else{
+		//if the current slot has the up slot != NULL (i.e. the slot is not in the first row)
+		if(currSlot->up != NULL){
+			//invokes function find slots incrementing the current Distance (currDist) and setting the current slot to the up slot
+			findSlots(reqDist, currDist +1,  currSlot->up, foundSlots, count, explored);
+		}
+		//if the current slot has the right slot != NULL (i.e. the slot is not in the last column)
+		if(currSlot->right != NULL){
+			//invokes function find slots incrementing the current Distance (currDist) and setting the current slot to the right slot
+			findSlots(reqDist, currDist +1,  currSlot->right, foundSlots, count, explored);
+		}
+		//if the current slot has the down slot != NULL (i.e. the slot is not in the last row)
+		if(currSlot->down != NULL){
+			//invokes function find slots incrementing the current Distance (currDist) and setting the current slot to the down slot
+			findSlots(reqDist, currDist +1,  currSlot->down, foundSlots, count, explored);
+		}
+		//if the current slot has the left slot != NULL (i.e. the slot is not in the first column)
+		if(currSlot->left != NULL){
+			//invokes function find slots incrementing the current Distance (currDist) and setting the current slot to the left slot
+			findSlots(reqDist, currDist +1,  currSlot->left, foundSlots, count, explored);
+		}
+
+	}
 }
