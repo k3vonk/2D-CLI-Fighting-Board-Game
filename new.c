@@ -48,6 +48,7 @@ void action(struct player p[], int currPlayer);
 void movement(struct player p[], int currPlayer);
 void terrain_mod(struct player p[],int currPlayer);
 void findSlots(int reqDist, int currDist,  struct slot * currSlot, struct slot * foundSlots, int * count,  bool explored[BOARD_SIZE][BOARD_SIZE]);
+void searchAttk(struct player p[],int currPlayer, struct slot *upLeft, struct slot *upRight, struct slot *downLeft, struct slot *downRight, int n, int choice);
 
 int main(void)
 {
@@ -75,6 +76,17 @@ int main(void)
 				movement(players, i); //Player moves with choice
 			break;
 			case(2):
+			//Visual Presentation of current player's slot
+			printf("--------Current Slot-------\n");
+			printf("[%d,%d] -> %s\n", players[i].place->row, players[i].place->column, players[i].name);
+			
+			//Visual Presentation of Enemy Unit Range
+			printf("\n\nMelee Range:\n");
+			searchAttk(players,i, upLeft, upRight, downLeft, downRight, num, 0);
+			printf("\n\nDistant Range:\n");
+			searchAttk(players,i, upLeft, upRight, downLeft, downRight, num, 1);
+			printf("\n\nMagic Range: \n");
+			searchAttk(players,i, upLeft, upRight, downLeft, downRight, num, 2);
 			break;
 			case(3):
 			break;
@@ -451,7 +463,8 @@ void movement(struct player p[], int currPlayer){
 				printf("\n\nEnter your choice of movement:\n");
 				printf("(0)Up (1)Down (2)Left (3)Right\n");
 				scanf("%d", &point);
-					
+				
+				//Error Messages
 				if(point < 0 || point > 3){
 					printf("Invalid action, %s retry!\n", p[currPlayer].name);
 				}	
@@ -544,8 +557,6 @@ void terrain_mod(struct player p[],int currPlayer)
  */
 void findSlots(int reqDist, int currDist,  struct slot * currSlot, struct slot * foundSlots, int * count,  bool explored[BOARD_SIZE][BOARD_SIZE]){
 
-
-
 	//The base case: the current slot is at the required distance from the starting slot
 	if(currDist == reqDist){
 		//the current slot was not explored
@@ -585,3 +596,78 @@ void findSlots(int reqDist, int currDist,  struct slot * currSlot, struct slot *
 
 }
 
+void searchAttk(struct player p[],int currPlayer, struct slot *upLeft, struct slot *upRight, struct slot *downLeft, struct slot *downRight, int n, int choice)
+{
+		struct slot *currSlot = NULL; //Initialization
+		struct slot *foundSlots = malloc(BOARD_SIZE * BOARD_SIZE * sizeof(struct slot)); //Check which slots are players
+		bool explored[BOARD_SIZE][BOARD_SIZE];
+		int count = 0; //The number of slots that are found
+		
+		//Initializing explored
+		for(int i=0; i<BOARD_SIZE; i++){
+			for(int j=0; j<BOARD_SIZE;j++){
+				explored[i][j] = false;
+			}
+		}
+	
+		currSlot = p[currPlayer].place; //The slot we are searching from
+		
+		//If slot isn't empty
+			if(currSlot!= NULL){
+				//Find Melee Unit
+				if(choice == 0){
+					findSlots(0, 0, currSlot, foundSlots, &count, explored);
+					findSlots(1, 0, currSlot, foundSlots, &count, explored);
+				}
+				else if(choice == 1){ //Find Distant Unit (Not Magic Attk)
+					//findSlots(3, 0, currSlot, foundSlots, &count, explored);
+					findSlots(4, 0, currSlot, foundSlots, &count, explored);
+				}
+				else{ //Do nothing for Magic find
+					
+				}
+				
+				
+				if(choice == 0){
+					for(int j = 0; j < n; j++){
+						for(int k=0; k<count; k++){
+							if(p[j].place->row == foundSlots[k].row && p[j].place->column == foundSlots[k].column && p[j].name != p[currPlayer].name){
+								printf("(%d, %d)-> ",foundSlots[k].row, foundSlots[k].column);
+								printf("%s", p[j].name);
+								p[j].target = 1;
+								break;
+							}			
+							else{
+								p[j].target = 0;
+							}
+						}	
+					}
+				}	
+				
+				else if(choice == 1){
+					
+					for(int j = 0; j < n; j++){
+						for(int k=0; k<count; k++){
+							//if(p[j].place->row == foundSlots[k].row && p[j].place->column == foundSlots[k].column && p[j].name != p[currPlayer].name){
+								printf("(%d, %d)-> ",foundSlots[k].row, foundSlots[k].column);
+								//printf("%s", p[j].name);
+								p[j].target = 2;
+								//break;
+							//}			
+							//else{
+								p[j].target = 0;
+							//}
+						}	
+					}
+				}
+				
+				else if(choice == 2){
+					for(int j = 0; j < n; j++){
+						if(p[j].name != p[currPlayer].name){
+							printf("(%d, %d)-> %s\n",p[j].place->row, p[j].place->column,p[j].name);
+						}		
+					}
+				}
+				
+			}
+}
