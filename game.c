@@ -103,7 +103,7 @@ int main(void)
 			if(currSlot!= NULL){
 				//invokes function findSlots. The required distance is a constant
 				//However you can reuse this function providing as input any arbitrary distance
-				findSlots(1, 0, currSlot, foundSlots, &count, explored);
+				findSlots(3, 0, currSlot, foundSlots, &count, explored);
 				//findSlots(2, 0, currSlot, foundSlots, &count, explored);
 				//findSlots(4, 0, currSlot, foundSlots, &count, explored);
 		
