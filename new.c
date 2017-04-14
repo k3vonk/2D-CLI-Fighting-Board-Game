@@ -612,7 +612,7 @@ void searchAttk(struct player p[],int currPlayer, struct slot *upLeft, struct sl
 	
 		currSlot = p[currPlayer].place; //The slot we are searching from
 		
-		//If slot isn't empty
+	//If slot isn't empty
 			if(currSlot!= NULL){
 				//Find Melee Unit
 				if(choice == 0){
@@ -620,7 +620,7 @@ void searchAttk(struct player p[],int currPlayer, struct slot *upLeft, struct sl
 					findSlots(1, 0, currSlot, foundSlots, &count, explored);
 				}
 				else if(choice == 1){ //Find Distant Unit (Not Magic Attk)
-					//findSlots(3, 0, currSlot, foundSlots, &count, explored);
+					findSlots(3, 0, currSlot, foundSlots, &count, explored);
 					findSlots(4, 0, currSlot, foundSlots, &count, explored);
 				}
 				else{ //Do nothing for Magic find
@@ -648,15 +648,15 @@ void searchAttk(struct player p[],int currPlayer, struct slot *upLeft, struct sl
 					
 					for(int j = 0; j < n; j++){
 						for(int k=0; k<count; k++){
-							//if(p[j].place->row == foundSlots[k].row && p[j].place->column == foundSlots[k].column && p[j].name != p[currPlayer].name){
+							if(p[j].place->row == foundSlots[k].row && p[j].place->column == foundSlots[k].column && p[j].name != p[currPlayer].name){
 								printf("(%d, %d)-> ",foundSlots[k].row, foundSlots[k].column);
-								//printf("%s", p[j].name);
+								printf("%s", p[j].name);
 								p[j].target = 2;
-								//break;
-							//}			
-							//else{
+								break;
+							}			
+							else{
 								p[j].target = 0;
-							//}
+							}
 						}	
 					}
 				}
