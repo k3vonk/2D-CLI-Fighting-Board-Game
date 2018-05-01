@@ -1,4 +1,4 @@
-# 2D-Array-Board-Game---Command-Line
+# 2D-Array Board-Game [Command-Line]
 A 2D array board game that plays through the command line. 
 This game contains basic functionality that allows players to attack or move based on their location on the grid.
 
