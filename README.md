@@ -1,8 +1,9 @@
-# 2D-Array Board-Game [Command-Line]
-A 2D array board game that plays through the command line. 
-This game contains basic functionality that allows players to attack or move based on their location on the grid.
+# 2D Command Line Fighting Style Board Game
 
-Actions can only be taken by entering the corresponding number relating to that action. 
-So if "(1)Up" is an available action then 1 is the input to the command line and not Up. 
+A 2D board generated and displayed on the command line. 
 
-This is a very basic game. The first i've created. It may contain errors, any bugs that are found please contact me. Thank you!
+The very first piece of game I have created. 
+
+# Functionalities
+* Player can attack or move on grid space.
+* Number inputs as actions e.g. (1)Up
