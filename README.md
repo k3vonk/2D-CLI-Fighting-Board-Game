@@ -10,6 +10,7 @@ The very first piece of game I have created.
 
 
 # Sample CLI output
+```
 Enter the number of players(min 2,max 6): 2
 Enter the name of player 1: hi
 Enter the name of player 2: bye
@@ -36,4 +37,4 @@ Player Name           Class     -------------------Capabilities-----------------
 1.hi                  Elf       Sm[ 75]  St[ 13]  MS[ 57]  L[ 86]  D[ 31]  LP[100]      ->[6,2]
 2.bye                 Ogre      Sm[  9]  St[ 87]  MS[  0]  L[ 22]  D[ 90]  LP[100]      ->[0,1]
 
-
+```
